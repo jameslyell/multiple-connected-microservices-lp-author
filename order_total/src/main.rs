@@ -29,6 +29,12 @@ struct Order {
     total: f32,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct ErrorMessage {
+    status: String,
+    message: String
+}
+
 /*
 impl Order {
     fn new(
@@ -86,9 +92,13 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, anyhow::Er
                     Ok(response_build(&serde_json::to_string_pretty(&order)?))
                 }
                 reqwest::StatusCode::NOT_FOUND => {
+                    let msg = ErrorMessage {
+                        status: "error".to_string(),
+                        message: "The zip code in the order does not have a corresponding sales tax rate.".to_string()
+                    };
                     let not_found = Response::builder()
                         .status(StatusCode::BAD_REQUEST)
-                        .body(Body::from("{\"status\":\"error\", \"message\":\"The zip code in the order does not have a corresponding sales tax rate.\"}"))
+                        .body(Body::from(serde_json::to_string(&msg).unwrap()))
                         .unwrap();
                     Ok(not_found)
                 }
